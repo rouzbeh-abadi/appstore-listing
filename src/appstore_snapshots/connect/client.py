@@ -254,6 +254,85 @@ class AppStoreConnectClient:
         response = self._request("POST", "/v1/appStoreVersionLocalizations", json=payload)
         return response["data"]["id"]  # type: ignore[index]
 
+    def get_localization(self, localization_id: str) -> dict[str, Any]:
+        """Current attribute values for one App Store version localization."""
+        payload = self._request("GET", f"/v1/appStoreVersionLocalizations/{localization_id}") or {}
+        return (payload.get("data") or {}).get("attributes") or {}
+
+    def update_localization(self, localization_id: str, attributes: dict[str, Any]) -> None:
+        """PATCH description, keywords, promotional text, what's new and the URLs."""
+        if not attributes:
+            return
+        self._request(
+            "PATCH",
+            f"/v1/appStoreVersionLocalizations/{localization_id}",
+            json={
+                "data": {
+                    "type": "appStoreVersionLocalizations",
+                    "id": localization_id,
+                    "attributes": attributes,
+                }
+            },
+        )
+
+    # -------------------------------------------------------------- app info
+
+    def editable_app_info_id(self, app_id: str) -> str | None:
+        """The ``appInfo`` whose name and subtitle can still be changed.
+
+        An app has several: one per review state. Only the one that is not yet
+        approved accepts edits, so picking the first would usually write to a
+        frozen record and fail.
+        """
+        infos = list(self._paged(f"/v1/apps/{app_id}/appInfos"))
+        for item in infos:
+            state = (item.get("attributes") or {}).get("appStoreState") or (
+                item.get("attributes") or {}
+            ).get("state")
+            if state in EDITABLE_VERSION_STATES:
+                return item["id"]
+        return infos[0]["id"] if infos else None
+
+    def list_app_info_localizations(self, app_info_id: str) -> dict[str, str]:
+        """``{locale: appInfoLocalizationId}``."""
+        return {
+            item["attributes"]["locale"]: item["id"]
+            for item in self._paged(f"/v1/appInfos/{app_info_id}/appInfoLocalizations")
+        }
+
+    def create_app_info_localization(self, app_info_id: str, locale: str) -> str:
+        payload = {
+            "data": {
+                "type": "appInfoLocalizations",
+                "attributes": {"locale": locale},
+                "relationships": {"appInfo": {"data": {"type": "appInfos", "id": app_info_id}}},
+            }
+        }
+        response = self._request("POST", "/v1/appInfoLocalizations", json=payload)
+        return response["data"]["id"]  # type: ignore[index]
+
+    def get_app_info_localization(self, localization_id: str) -> dict[str, Any]:
+        payload = self._request("GET", f"/v1/appInfoLocalizations/{localization_id}") or {}
+        return (payload.get("data") or {}).get("attributes") or {}
+
+    def update_app_info_localization(
+        self, localization_id: str, attributes: dict[str, Any]
+    ) -> None:
+        """PATCH the app name, subtitle and privacy links."""
+        if not attributes:
+            return
+        self._request(
+            "PATCH",
+            f"/v1/appInfoLocalizations/{localization_id}",
+            json={
+                "data": {
+                    "type": "appInfoLocalizations",
+                    "id": localization_id,
+                    "attributes": attributes,
+                }
+            },
+        )
+
     # ------------------------------------------------------------ screenshots
 
     def list_screenshot_sets(self, localization_id: str) -> dict[str, str]:

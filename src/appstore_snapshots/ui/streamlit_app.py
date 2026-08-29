@@ -25,6 +25,7 @@ from appstore_snapshots.models import ProgressEvent, ScanResult
 from appstore_snapshots.naming import APP_STORE_LOCALES
 from appstore_snapshots.scanning import DEFAULT_LOCALE, SnapshotConfig, scan_devices
 from appstore_snapshots.ui.folder_picker import folder_input
+from appstore_snapshots.ui.metadata_panel import metadata_panel
 
 #: Always on the page.
 BASE_SLOTS = (
@@ -48,6 +49,7 @@ def main() -> None:
     result = _scan(folders, default_locale)
     credentials, bundle_id = _app_store_config()
     _upload_section(result, credentials, bundle_id, extra)
+    metadata_panel(credentials, bundle_id)
 
 
 # --------------------------------------------------------------------- folders

@@ -2,8 +2,9 @@
 
 [![CI](https://github.com/rouzbeh-abadi/appstore-snapshots/actions/workflows/ci.yml/badge.svg)](https://github.com/rouzbeh-abadi/appstore-snapshots/actions/workflows/ci.yml)
 
-Upload App Store screenshots from your folders to App Store Connect. No Fastlane,
-no Ruby.
+Upload App Store screenshots *and* the text that goes with them — description,
+what's new, promotional text — to App Store Connect, in every language. No
+Fastlane, no Ruby.
 
 You give it one folder per device size, and each is read the way you happen to
 keep it:
@@ -52,6 +53,62 @@ version of the app and names the version it wrote to when it finishes.
 
 *Advanced* holds two things: the locale for screenshots with no language folder,
 and replace-vs-append.
+
+Below the upload button, **Text for each language** takes the metadata JSON —
+point it at a path or drop the file in. It checks the file as soon as it has
+one, and **Preview changes** shows what would be written before you send it.
+
+## The text for each language
+
+Screenshots come from folders; the words come from one JSON file, one object per
+language:
+
+```json
+{
+  "en-US": {
+    "description": "Build a vision board, write a line a day…",
+    "keywords": "vision board,journal,gratitude",
+    "promotionalText": "Now in four more languages.",
+    "whatsNew": "German, French, Spanish and Simplified Chinese."
+  },
+  "de-DE": {
+    "description": "Baue ein Vision Board…",
+    "whatsNew": "Jetzt auf Deutsch."
+  }
+}
+```
+
+Copy `metadata.example.json` to start. `appstore-snapshots fields` lists every
+field, its character limit, and which record it is written to.
+
+```bash
+appstore-snapshots metadata metadata.json --check                  # no network
+appstore-snapshots metadata metadata.json -b com.example.myapp --dry-run
+appstore-snapshots metadata metadata.json -b com.example.myapp
+```
+
+Worth knowing:
+
+* **The file is checked before anything is sent.** Languages Apple does not
+  take, fields that do not exist, and text over the limit are all reported
+  together, and nothing is uploaded until every one is fixed — a half-applied
+  push leaves some languages updated and others not.
+* **Only what changed is written.** Each field is compared against what is live
+  first, so a re-run is cheap and a value someone edited in the web UI is not
+  overwritten by a file that merely repeats the old text. `--dry-run` prints
+  exactly the diff it would have written.
+* **Languages are matched loosely.** `de`, `de-DE` and `German` all mean
+  `de-DE`, the same as the screenshot folders. Field names are forgiving too:
+  `whatsNew`, `whats_new` and `"What's New"` are one field.
+* **Missing languages are created.** A language in the file that has no
+  localization on the version yet gets one.
+* **The app name and subtitle are held back** unless you pass
+  `--include-app-info`. They carry across versions, so a stale file would
+  quietly rename the app.
+* **What's New only works on an update.** Apple rejects it on an app's first
+  release; the error says so rather than making you guess.
+* Omit a field, or set it to `""` or `null`, to leave whatever is there alone.
+  Keys starting with `_` are ignored, so you can keep notes in the file.
 
 ## The command line
 
@@ -106,5 +163,6 @@ uv run ruff check . && uv run ruff format .
 CI runs the same checks on Ubuntu and macOS for every push and pull request.
 
 The package is split by role: `naming/` maps folder names to App Store values,
-`scanning/` turns folders into screenshot sets, `connect/` does auth, REST and
-uploading, and `ui/` is the Streamlit page.
+`scanning/` turns folders into screenshot sets, `metadata/` reads and pushes the
+per-language text, `connect/` does auth, REST and uploading, and `ui/` is the
+Streamlit page.

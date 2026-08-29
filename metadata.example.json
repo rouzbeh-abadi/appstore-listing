@@ -1,0 +1,50 @@
+{
+  "_readme": [
+    "One object per language. Keys are App Store locales - de, de-DE and German",
+    "all resolve to de-DE. Run `appstore-snapshots fields` for every field and",
+    "its character limit. Omit a field, or set it to null or \"\", to leave",
+    "whatever is already in App Store Connect untouched.",
+    "Keys starting with _ are ignored, so notes like this one are fine."
+  ],
+
+  "en-US": {
+    "description": "Build a vision board, write a line a day, and notice one good thing. SuccessKit keeps the three habits that compound in one place.\n\nVISION BOARD\nDrop in photos, words and drawings on a canvas that is yours.\n\nJOURNAL\nA morning intention and an evening reflection. A sentence is plenty.\n\nGRATITUDE\nName one thing in seconds, so the habit actually sticks.",
+    "keywords": "vision board,journal,gratitude,goals,habits,diary,mindfulness,affirmation",
+    "promotionalText": "New: your board, your journal and your gratitude now speak German, French, Spanish and Chinese.",
+    "whatsNew": "Now available in German, French, Spanish and Simplified Chinese.\n\nThe vision board canvas works with VoiceOver, and every screen scales with Larger Text.",
+    "supportUrl": "https://deadpixel-studio.com/support",
+    "marketingUrl": "https://deadpixel-studio.com/successkit"
+  },
+
+  "de-DE": {
+    "description": "Baue ein Vision Board, schreib täglich eine Zeile und bemerke eine gute Sache. SuccessKit hält die drei Gewohnheiten zusammen, die sich summieren.\n\nVISION BOARD\nFotos, Worte und Zeichnungen auf einer Fläche, die dir gehört.\n\nJOURNAL\nEine Absicht am Morgen, eine Reflexion am Abend. Ein Satz reicht.\n\nDANKBARKEIT\nNenn eine Sache in Sekunden, damit die Gewohnheit wirklich bleibt.",
+    "keywords": "vision board,tagebuch,dankbarkeit,ziele,gewohnheiten,achtsamkeit",
+    "promotionalText": "Neu: Vision Board, Journal und Dankbarkeit sprechen jetzt Deutsch.",
+    "whatsNew": "Jetzt auf Deutsch, Französisch, Spanisch und Chinesisch verfügbar.\n\nDas Vision Board funktioniert mit VoiceOver, und jeder Bildschirm skaliert mit größerem Text.",
+    "supportUrl": "https://deadpixel-studio.com/support"
+  },
+
+  "fr-FR": {
+    "description": "Créez un vision board, écrivez une ligne par jour et remarquez une bonne chose. SuccessKit réunit les trois habitudes qui comptent.",
+    "keywords": "vision board,journal,gratitude,objectifs,habitudes,pleine conscience",
+    "promotionalText": "Nouveau : votre board, votre journal et votre gratitude parlent désormais français.",
+    "whatsNew": "Désormais disponible en allemand, français, espagnol et chinois simplifié.\n\nLe vision board fonctionne avec VoiceOver et chaque écran s'adapte au texte agrandi.",
+    "supportUrl": "https://deadpixel-studio.com/support"
+  },
+
+  "es-ES": {
+    "description": "Crea un vision board, escribe una línea al día y fíjate en algo bueno. SuccessKit reúne los tres hábitos que suman.",
+    "keywords": "vision board,diario,gratitud,metas,hábitos,atención plena",
+    "promotionalText": "Nuevo: tu tablero, tu diario y tu gratitud ya hablan español.",
+    "whatsNew": "Ya disponible en alemán, francés, español y chino simplificado.\n\nEl vision board funciona con VoiceOver y todas las pantallas se adaptan al texto más grande.",
+    "supportUrl": "https://deadpixel-studio.com/support"
+  },
+
+  "zh-Hans": {
+    "description": "做一块愿景板，每天写一行，记下一件好事。SuccessKit 把三个会累积的习惯放在一起。",
+    "keywords": "愿景板,日志,感恩,目标,习惯,正念",
+    "promotionalText": "全新：愿景板、日志与感恩，现已支持简体中文。",
+    "whatsNew": "现已支持德语、法语、西班牙语和简体中文。\n\n愿景板支持旁白，所有界面均适配更大字体。",
+    "supportUrl": "https://deadpixel-studio.com/support"
+  }
+}

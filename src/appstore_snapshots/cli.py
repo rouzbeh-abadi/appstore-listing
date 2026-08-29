@@ -12,6 +12,7 @@ from rich.table import Table
 
 from .connect import AppStoreConnectClient, Credentials, SnapshotUploader, UploadOptions, env
 from .errors import SnapshotError
+from .metadata import MetadataDocument, MetadataOptions, MetadataPusher
 from .models import ProgressEvent, ScanResult
 from .naming import DISPLAY_TYPE_LABELS
 from .scanning import DEFAULT_LOCALE, SnapshotConfig, scan, scan_devices
@@ -283,6 +284,175 @@ def upload_command(
         for error in report.errors:
             console.print(f"[red]error[/red] {error}")
         raise typer.Exit(1)
+
+
+@app.command("metadata")
+def metadata_command(
+    file: Annotated[Path, typer.Argument(help="JSON file: one object per language.")],
+    bundle_id: Annotated[
+        str | None, typer.Option("--bundle-id", "-b", help="App bundle identifier.")
+    ] = None,
+    app_id: Annotated[
+        str | None, typer.Option("--app-id", help="App Store Connect app id.")
+    ] = None,
+    version_id: Annotated[
+        str | None, typer.Option("--version-id", help="Target version (default: latest editable).")
+    ] = None,
+    key: Annotated[Path | None, typer.Option("--key", help="Path to the .p8 file.")] = None,
+    key_id: Annotated[str | None, typer.Option("--key-id")] = None,
+    issuer_id: Annotated[str | None, typer.Option("--issuer-id")] = None,
+    config: ConfigOpt = None,
+    platform: str = "IOS",
+    only_languages: Annotated[
+        str | None,
+        typer.Option("--only-languages", help="Comma-separated locales to include."),
+    ] = None,
+    include_app_info: Annotated[
+        bool,
+        typer.Option(
+            "--include-app-info",
+            help="Also write the app name and subtitle. Off by default — they persist "
+            "across versions, so a stale file would quietly rename the app.",
+        ),
+    ] = False,
+    check: Annotated[
+        bool, typer.Option("--check", help="Validate the file and stop. No network.")
+    ] = False,
+    dry_run: Annotated[
+        bool, typer.Option("--dry-run", help="Show what would change; write nothing.")
+    ] = False,
+    yes: Annotated[bool, typer.Option("--yes", "-y", help="Skip the confirmation prompt.")] = False,
+) -> None:
+    """Push descriptions, what's new and promotional text for every language."""
+    document = MetadataDocument.load(file)
+    _print_metadata(document, include_app_info=include_app_info)
+
+    if document.issues:
+        for issue in document.issues:
+            console.print(f"[red]invalid[/red] {issue}")
+        # Nothing is uploaded while any field is invalid: a partial push leaves
+        # some languages updated and others not, which is worse than none.
+        raise typer.Exit(1)
+
+    if check:
+        console.print("[green]The file is valid.[/green]")
+        return
+
+    wanted = {loc.strip() for loc in only_languages.split(",")} if only_languages else None
+    client = AppStoreConnectClient(_credentials(key, key_id, issuer_id))
+
+    cfg = _load_config(file.parent, config)
+    target_app_id = app_id
+    if not target_app_id:
+        resolved_bundle = bundle_id or cfg.bundle_id or env.get(env.BUNDLE_ID)
+        if not resolved_bundle:
+            raise SnapshotError("Pass --app-id or --bundle-id (or set ASC_BUNDLE_ID).")
+        found = client.find_app(resolved_bundle)
+        if not found:
+            raise SnapshotError(
+                f"No app with bundle id {resolved_bundle!r} is visible to this key."
+            )
+        console.print(f"App: [bold]{found}[/bold]  id={found.id}")
+        target_app_id = found.id
+
+    if not version_id:
+        version = client.latest_editable_version(target_app_id, platform)
+        if not version:
+            raise SnapshotError(
+                "No editable App Store version found. Create one in App Store Connect, "
+                "or pass --version-id explicitly."
+            )
+        console.print(f"Version: [bold]{version}[/bold]  id={version.id}")
+        version_id = version.id
+
+    if not (yes or dry_run):
+        count = len(document.filtered(wanted))
+        typer.confirm(f"Write metadata for {count} language(s) to this version?", abort=True)
+
+    pusher = MetadataPusher(
+        client,
+        MetadataOptions(dry_run=dry_run, include_app_info=include_app_info),
+        on_progress=lambda e: console.print(
+            f"[cyan]{e.message}[/cyan]" if e.kind == "set_start" else e.message
+        ),
+    )
+    report = pusher.push(version_id, document, app_id=target_app_id, locales=wanted)
+
+    if report.changes:
+        table = Table(title="Would write" if dry_run else "Written", header_style="bold")
+        table.add_column("Language")
+        table.add_column("Field")
+        table.add_column("New value")
+        table.add_column("Was", justify="right")
+        for change in report.changes:
+            table.add_row(
+                change.locale,
+                change.field,
+                change.summary(width=54).split(": ", 1)[-1],
+                "[dim]empty[/dim]" if change.is_new else f"{len(change.before)} chars",
+            )
+        console.print(table)
+
+    console.print(
+        f"\n[bold]{report.written}[/bold] field(s) "
+        f"{'would be written' if dry_run else 'written'}, "
+        f"[bold]{report.unchanged}[/bold] already up to date"
+        + (
+            f", [bold]{len(report.locales_created)}[/bold] language(s) added"
+            if report.locales_created
+            else ""
+        )
+    )
+    if report.errors:
+        for error in report.errors:
+            console.print(f"[red]error[/red] {error}")
+        raise typer.Exit(1)
+
+
+def _print_metadata(document: MetadataDocument, *, include_app_info: bool) -> None:
+    table = Table(title=str(document.path or "metadata"), header_style="bold")
+    table.add_column("Language")
+    table.add_column("Fields")
+    table.add_column("Longest", justify="right")
+    for entry in document.locales:
+        shown = entry.values if include_app_info else entry.scoped("version")
+        if not shown:
+            continue
+        longest = max(((len(v), k) for k, v in shown.items()), default=(0, "—"))
+        table.add_row(entry.locale, ", ".join(sorted(shown)), f"{longest[1]} {longest[0]}")
+    console.print(table)
+    skipped = ""
+    if not include_app_info:
+        held = sum(len(e.scoped("app-info")) for e in document.locales)
+        if held:
+            skipped = (
+                f"  [dim]({held} app-name/subtitle field(s) held back; "
+                "--include-app-info to send)[/dim]"
+            )
+    console.print(
+        f"[bold]{len(document.locales)}[/bold] language(s), "
+        f"[bold]{document.total_fields}[/bold] field(s){skipped}"
+    )
+
+
+@app.command("fields")
+def fields_command() -> None:
+    """List every metadata field, its limit, and which record it is written to."""
+    from .metadata import FIELDS
+
+    table = Table(header_style="bold")
+    table.add_column("JSON key")
+    table.add_column("App Store Connect")
+    table.add_column("Limit", justify="right")
+    table.add_column("Written to")
+    for field_def in FIELDS:
+        table.add_row(
+            field_def.key,
+            field_def.label,
+            str(field_def.limit),
+            "app info" if field_def.scope == "app-info" else "version",
+        )
+    console.print(table)
 
 
 @app.command("devices")
