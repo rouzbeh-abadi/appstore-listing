@@ -2,12 +2,12 @@
 
 The package is split by role:
 
-* :mod:`~appstore_snapshots.naming` — folder names to App Store Connect values
-* :mod:`~appstore_snapshots.scanning` — folders to :class:`ScreenshotSet` objects
-* :mod:`~appstore_snapshots.connect` — credentials, the REST client, uploading
-* :mod:`~appstore_snapshots.ui` — the Streamlit page
+* :mod:`~appstore_listing.naming` — folder names to App Store Connect values
+* :mod:`~appstore_listing.scanning` — folders to :class:`ScreenshotSet` objects
+* :mod:`~appstore_listing.connect` — credentials, the REST client, uploading
+* :mod:`~appstore_listing.ui` — the Streamlit page
 
-:mod:`~appstore_snapshots.errors` and :mod:`~appstore_snapshots.models` stay at the
+:mod:`~appstore_listing.errors` and :mod:`~appstore_listing.models` stay at the
 top because every one of those imports them.
 """
 

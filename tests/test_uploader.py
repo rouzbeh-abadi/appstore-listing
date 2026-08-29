@@ -7,8 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from appstore_snapshots.connect.uploader import SnapshotUploader, UploadOptions
-from appstore_snapshots.scanning.scanner import scan
+from appstore_listing.connect.uploader import SnapshotUploader, UploadOptions
+from appstore_listing.scanning.scanner import scan
 
 
 class FakeClient:
@@ -170,7 +170,7 @@ def test_progress_events_are_emitted(small_tree: Path):
 
 def test_version_ordering_picks_the_newest_editable(monkeypatch):
     """`latest_editable_version` must sort — the API returns versions unordered."""
-    from appstore_snapshots.connect.client import AppStoreConnectClient, AppStoreVersion
+    from appstore_listing.connect.client import AppStoreConnectClient, AppStoreVersion
 
     unordered = [
         AppStoreVersion("id-19", "1.9.0", "IOS", "PREPARE_FOR_SUBMISSION"),
@@ -185,7 +185,7 @@ def test_version_ordering_picks_the_newest_editable(monkeypatch):
 
 
 def test_a_draft_beats_a_version_already_in_review(monkeypatch):
-    from appstore_snapshots.connect.client import AppStoreConnectClient, AppStoreVersion
+    from appstore_listing.connect.client import AppStoreConnectClient, AppStoreVersion
 
     versions = [
         AppStoreVersion("id-review", "3.0.0", "IOS", "WAITING_FOR_REVIEW"),
@@ -214,7 +214,7 @@ def test_replace_reports_what_it_removed(small_tree: Path):
 
 def test_list_versions_sorts_newest_first(monkeypatch):
     """The API response order is arbitrary, so list_versions must sort it."""
-    from appstore_snapshots.connect.client import AppStoreConnectClient
+    from appstore_listing.connect.client import AppStoreConnectClient
 
     raw = [
         {"id": "a", "attributes": {"versionString": "1.9.0", "appVersionState": "READY_FOR_SALE"}},

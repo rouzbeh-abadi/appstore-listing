@@ -1,4 +1,4 @@
-"""Command line interface: ``appstore-snapshots <command>``."""
+"""Command line interface: ``appstore-listing <command>``."""
 
 from __future__ import annotations
 

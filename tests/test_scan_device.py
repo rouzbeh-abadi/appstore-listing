@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from appstore_snapshots.errors import ScanError
-from appstore_snapshots.scanning.scanner import DEFAULT_LOCALE, scan_device, scan_devices
+from appstore_listing.errors import ScanError
+from appstore_listing.scanning.scanner import DEFAULT_LOCALE, scan_device, scan_devices
 
 from .conftest import write_png
 
@@ -149,3 +149,22 @@ def test_scan_devices_reports_a_missing_folder(tmp_path: Path):
 def test_scan_devices_needs_at_least_one_folder():
     with pytest.raises(ScanError):
         scan_devices([])
+
+
+def test_listing_json_is_found_and_snapshots_json_still_works(tmp_path):
+    """The config file follows the tool's name, without breaking old checkouts.
+
+    The file lives in the user's project, not in this repo, so renaming
+    the tool is no reason to make someone rename their file.
+    """
+    from appstore_listing.scanning.config import DEFAULT_CONFIG_NAMES, SnapshotConfig
+
+    assert DEFAULT_CONFIG_NAMES[0] == "listing.json"
+    assert "snapshots.json" in DEFAULT_CONFIG_NAMES
+
+    for name in ("listing.json", "snapshots.json"):
+        root = tmp_path / name.replace(".", "_")
+        root.mkdir()
+        (root / name).write_text('{"languages": {"brazil": "pt-BR"}}', encoding="utf-8")
+        config = SnapshotConfig.discover(root)
+        assert config.languages["brazil"] == "pt-BR", name

@@ -1,7 +1,7 @@
 import pytest
 
-from appstore_snapshots.errors import UnknownLocaleError
-from appstore_snapshots.naming.locales import looks_like_locale, resolve_locale
+from appstore_listing.errors import UnknownLocaleError
+from appstore_listing.naming.locales import looks_like_locale, resolve_locale
 
 
 @pytest.mark.parametrize(

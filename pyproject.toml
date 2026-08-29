@@ -3,14 +3,14 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "appstore-snapshots"
+name = "appstore-listing"
 version = "0.1.0"
-description = "Upload App Store screenshots from per-device folders to App Store Connect."
+description = "Push App Store screenshots and localized listing text to App Store Connect."
 readme = "README.md"
 requires-python = ">=3.13"
 license = { text = "MIT" }
 authors = [{ name = "Rouzbeh Abadi", email = "rouzbeh.abadi@me.com" }]
-keywords = ["appstore", "app-store-connect", "screenshots", "snapshots", "ios", "fastlane"]
+keywords = ["appstore", "app-store-connect", "screenshots", "metadata", "localization", "ios", "fastlane"]
 
 dependencies = [
     "streamlit>=1.33",
@@ -23,13 +23,13 @@ dependencies = [
 ]
 
 [project.scripts]
-appstore-snapshots = "appstore_snapshots.cli:main"
+appstore-listing = "appstore_listing.cli:main"
 
 [dependency-groups]
 dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.6"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/appstore_snapshots"]
+packages = ["src/appstore_listing"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

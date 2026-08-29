@@ -1,7 +1,7 @@
 import pytest
 
-from appstore_snapshots.errors import UnknownDeviceError
-from appstore_snapshots.naming.display_types import (
+from appstore_listing.errors import UnknownDeviceError
+from appstore_listing.naming.display_types import (
     display_type_from_resolution,
     looks_like_device,
     resolve_display_type,

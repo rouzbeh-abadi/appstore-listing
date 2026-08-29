@@ -3,7 +3,7 @@
 Everything else has a sensible default and lives under *Advanced*. Run it with::
 
     streamlit run streamlit_app.py
-    # or: appstore-snapshots ui
+    # or: appstore-listing ui
 """
 
 from __future__ import annotations
@@ -13,19 +13,19 @@ from pathlib import Path
 
 import streamlit as st
 
-from appstore_snapshots.connect import (
+from appstore_listing.connect import (
     AppStoreConnectClient,
     Credentials,
     SnapshotUploader,
     UploadOptions,
     env,
 )
-from appstore_snapshots.errors import SnapshotError
-from appstore_snapshots.models import ProgressEvent, ScanResult
-from appstore_snapshots.naming import APP_STORE_LOCALES
-from appstore_snapshots.scanning import DEFAULT_LOCALE, SnapshotConfig, scan_devices
-from appstore_snapshots.ui.folder_picker import folder_input
-from appstore_snapshots.ui.metadata_panel import metadata_panel
+from appstore_listing.errors import SnapshotError
+from appstore_listing.models import ProgressEvent, ScanResult
+from appstore_listing.naming import APP_STORE_LOCALES
+from appstore_listing.scanning import DEFAULT_LOCALE, SnapshotConfig, scan_devices
+from appstore_listing.ui.folder_picker import folder_input
+from appstore_listing.ui.metadata_panel import metadata_panel
 
 #: Always on the page.
 BASE_SLOTS = (

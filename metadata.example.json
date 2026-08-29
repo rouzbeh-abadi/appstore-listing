@@ -1,7 +1,7 @@
 {
   "_readme": [
     "One object per language. Keys are App Store locales - de, de-DE and German",
-    "all resolve to de-DE. Run `appstore-snapshots fields` for every field and",
+    "all resolve to de-DE. Run `appstore-listing fields` for every field and",
     "its character limit. Omit a field, or set it to null or \"\", to leave",
     "whatever is already in App Store Connect untouched.",
     "Keys starting with _ are ignored, so notes like this one are fine."

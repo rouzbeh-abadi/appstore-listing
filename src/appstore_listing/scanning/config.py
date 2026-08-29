@@ -1,6 +1,6 @@
 """Optional per-project mapping file for custom folder names.
 
-Drop a ``snapshots.json`` (or ``.toml``) next to your screenshots root, or point
+Drop a ``listing.json`` (or ``.toml``) next to your screenshots root, or point
 ``--config`` at one, to teach the tool folder names it cannot guess::
 
     {
@@ -26,7 +26,18 @@ from ..errors import SnapshotError
 from ..naming.display_types import DISPLAY_TYPES
 from ..naming.locales import APP_STORE_LOCALES
 
-DEFAULT_CONFIG_NAMES = ("snapshots.json", "snapshots.toml", ".snapshots.json")
+# `listing.*` first, matching the tool's name. The `snapshots.*` names
+# are what it was called before and keep working, because the file sits
+# in the user's project rather than in this repo and renaming a tool is
+# no reason to break someone's checkout.
+DEFAULT_CONFIG_NAMES = (
+    "listing.json",
+    "listing.toml",
+    ".listing.json",
+    "snapshots.json",
+    "snapshots.toml",
+    ".snapshots.json",
+)
 
 
 @dataclass(slots=True)

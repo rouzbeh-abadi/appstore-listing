@@ -13,9 +13,9 @@ from pathlib import Path
 
 import streamlit as st
 
-from appstore_snapshots.connect import AppStoreConnectClient, Credentials
-from appstore_snapshots.errors import SnapshotError
-from appstore_snapshots.metadata import (
+from appstore_listing.connect import AppStoreConnectClient, Credentials
+from appstore_listing.errors import SnapshotError
+from appstore_listing.metadata import (
     MetadataDocument,
     MetadataError,
     MetadataOptions,

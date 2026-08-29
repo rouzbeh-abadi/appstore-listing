@@ -8,8 +8,8 @@ from pathlib import Path
 
 import pytest
 
-from appstore_snapshots.errors import ApiError
-from appstore_snapshots.metadata import (
+from appstore_listing.errors import ApiError
+from appstore_listing.metadata import (
     MetadataDocument,
     MetadataError,
     MetadataOptions,
@@ -261,7 +261,7 @@ def test_cli_dry_run_reports_without_writing(tmp_path: Path, monkeypatch):
     """Covers the wiring the pusher tests do not: file, app, version, table."""
     from typer.testing import CliRunner
 
-    from appstore_snapshots import cli
+    from appstore_listing import cli
 
     fake = FakeClient({"en-US": {"description": "old"}})
 
@@ -270,12 +270,12 @@ def test_cli_dry_run_reports_without_writing(tmp_path: Path, monkeypatch):
             self.__dict__ = fake.__dict__
 
         def find_app(self, bundle_id):
-            from appstore_snapshots.connect.client import App
+            from appstore_listing.connect.client import App
 
             return App(id="app-1", name="Demo", bundle_id=bundle_id)
 
         def latest_editable_version(self, app_id, platform="IOS"):
-            from appstore_snapshots.connect.client import AppStoreVersion
+            from appstore_listing.connect.client import AppStoreVersion
 
             return AppStoreVersion(
                 id="v1", version_string="2.0", platform="IOS", state="PREPARE_FOR_SUBMISSION"
@@ -302,7 +302,7 @@ def test_cli_dry_run_reports_without_writing(tmp_path: Path, monkeypatch):
 def test_cli_refuses_an_invalid_file_before_touching_the_network(tmp_path: Path, monkeypatch):
     from typer.testing import CliRunner
 
-    from appstore_snapshots import cli
+    from appstore_listing import cli
 
     def explode(*_args, **_kwargs):
         raise AssertionError("the network must not be touched for an invalid file")

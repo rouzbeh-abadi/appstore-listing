@@ -2,8 +2,8 @@
 
 import pytest
 
-from appstore_snapshots.connect import env
-from appstore_snapshots.errors import CredentialsError
+from appstore_listing.connect import env
+from appstore_listing.errors import CredentialsError
 
 
 @pytest.fixture(autouse=True)
