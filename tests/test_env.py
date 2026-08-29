@@ -135,3 +135,62 @@ def test_deleting_the_whole_dotenv_clears_everything(tmp_path, monkeypatch):
     env.load()
     assert env.get(env.BUNDLE_ID) == ""
     assert env.source() is None
+
+
+class TestKeyPathResolution:
+    """ASC_KEY_PATH should survive the checkout being renamed or moved.
+
+    An absolute path is the one thing in .env that breaks when the
+    folder moves, and the resulting "private key file not found" does
+    not obviously point back at the rename.
+    """
+
+    def _dotenv(self, tmp_path, value):
+        (tmp_path / ".env").write_text(f"ASC_KEY_PATH={value}\n", encoding="utf-8")
+        (tmp_path / "AuthKey_TEST123.p8").write_text("not a real key", encoding="utf-8")
+
+    def test_relative_path_resolves_next_to_the_env_file(self, tmp_path, monkeypatch):
+        self._dotenv(tmp_path, "AuthKey_TEST123.p8")
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.delenv("ASC_KEY_PATH", raising=False)
+        env.load()
+
+        resolved = env.key_path()
+        assert resolved == (tmp_path / "AuthKey_TEST123.p8").resolve()
+        assert resolved.is_file()
+
+    def test_relative_path_still_resolves_after_the_folder_is_renamed(
+        self, tmp_path, monkeypatch
+    ):
+        # The whole point: rename the directory and the key is still found.
+        before = tmp_path / "appstore-snapshots"
+        before.mkdir()
+        self._dotenv(before, "AuthKey_TEST123.p8")
+        after = tmp_path / "appstore-listing"
+        before.rename(after)
+
+        monkeypatch.chdir(after)
+        monkeypatch.delenv("ASC_KEY_PATH", raising=False)
+        env.load()
+
+        assert env.key_path() == (after / "AuthKey_TEST123.p8").resolve()
+
+    def test_absolute_path_is_left_alone(self, tmp_path, monkeypatch):
+        absolute = tmp_path / "keys" / "AuthKey_TEST123.p8"
+        absolute.parent.mkdir()
+        absolute.write_text("not a real key", encoding="utf-8")
+        self._dotenv(tmp_path, str(absolute))
+
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.delenv("ASC_KEY_PATH", raising=False)
+        env.load()
+
+        assert env.key_path() == absolute
+
+    def test_missing_setting_is_none_rather_than_a_bad_path(self, tmp_path, monkeypatch):
+        (tmp_path / ".env").write_text("ASC_KEY_ID=ABC\n", encoding="utf-8")
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.delenv("ASC_KEY_PATH", raising=False)
+        env.load()
+
+        assert env.key_path() is None

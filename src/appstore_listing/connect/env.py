@@ -71,6 +71,31 @@ def get(name: str, default: str = "") -> str:
     return value.strip()
 
 
+def key_path() -> Path | None:
+    """Where the ``.p8`` is, resolved so a relative path survives a move.
+
+    An absolute path is taken as given, which is what every existing
+    ``.env`` holds. A relative one is resolved against the ``.env`` that
+    supplied it, so ``ASC_KEY_PATH=AuthKey_ABC123.p8`` keeps working
+    after the checkout is renamed or moved to another machine. Pinning
+    the key by absolute path is the one thing in here that breaks when
+    the folder moves, and the failure ("private key file not found")
+    does not obviously point back at the rename.
+
+    With no ``.env`` in play, a real environment variable in CI say, a
+    relative path falls back to the working directory, which is what a
+    shell would do with it.
+    """
+    raw = get(KEY_PATH)
+    if not raw:
+        return None
+    path = Path(raw).expanduser()
+    if path.is_absolute():
+        return path
+    base = source().parent if source() else Path.cwd()
+    return (base / path).resolve()
+
+
 def require_key_and_issuer() -> tuple[str, str]:
     """Return ``(key_id, issuer_id)`` or explain exactly what to put where."""
     key_id, issuer_id = get(KEY_ID), get(ISSUER_ID)

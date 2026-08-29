@@ -83,7 +83,7 @@ def _scan(
 
 def _credentials(key: Path | None, key_id: str | None, issuer_id: str | None) -> Credentials:
     """Flags win, then the environment, then .env — via env.get(), not os.environ."""
-    key_path = key or (Path(env.get(env.KEY_PATH)) if env.get(env.KEY_PATH) else None)
+    key_path = key or env.key_path()
     if not key_path:
         raise SnapshotError("Pass --key /path/to/AuthKey_XXXX.p8 (or set ASC_KEY_PATH).")
     return Credentials.from_p8_file(

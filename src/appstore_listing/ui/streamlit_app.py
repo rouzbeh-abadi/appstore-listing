@@ -152,7 +152,7 @@ def _app_store_config() -> tuple[Credentials | None, str]:
 
     key_id = env.get(env.KEY_ID)
     issuer_id = env.get(env.ISSUER_ID)
-    key_path = env.get(env.KEY_PATH)
+    key_path = env.key_path()
 
     uploaded = None
     if not key_path:

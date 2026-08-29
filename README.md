@@ -32,12 +32,16 @@ once.
 ```ini
 ASC_KEY_ID=ABCD123456                   # the code beside the key
 ASC_ISSUER_ID=69a6de70-xxxx-xxxx-xxxx   # the UUID above the key table
-ASC_KEY_PATH=~/private_keys/AuthKey_ABCD123456.p8
+ASC_KEY_PATH=AuthKey_ABCD123456.p8      # relative to the .env, or absolute
 ASC_BUNDLE_ID=com.example.myapp         # optional, pre-fills the field
 ```
 
 `.env` and `*.p8` are both gitignored. Never commit either. Real environment
 variables win over the file, so CI can set them directly.
+
+`ASC_KEY_PATH` may be relative, in which case it is resolved next to the `.env`
+that named it. Keeping the key beside the file means the checkout can be
+renamed or moved without the key going missing.
 
 ## Screenshots
 
