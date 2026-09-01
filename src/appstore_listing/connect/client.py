@@ -300,11 +300,20 @@ class AppStoreConnectClient:
             for item in self._paged(f"/v1/appInfos/{app_info_id}/appInfoLocalizations")
         }
 
-    def create_app_info_localization(self, app_info_id: str, locale: str) -> str:
+    def create_app_info_localization(
+        self, app_info_id: str, locale: str, attributes: dict[str, Any] | None = None
+    ) -> str:
+        """Create a localization, carrying its initial attributes.
+
+        Apple rejects the POST with a 409 unless ``name`` is part of the
+        creation payload — a language cannot exist on the app without a
+        name — so the caller passes the fields it is about to write and
+        they go up together rather than in a follow-up PATCH.
+        """
         payload = {
             "data": {
                 "type": "appInfoLocalizations",
-                "attributes": {"locale": locale},
+                "attributes": {**(attributes or {}), "locale": locale},
                 "relationships": {"appInfo": {"data": {"type": "appInfos", "id": app_info_id}}},
             }
         }

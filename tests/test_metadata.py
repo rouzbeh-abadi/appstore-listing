@@ -138,10 +138,12 @@ class FakeClient:
     def list_app_info_localizations(self, app_info_id):
         return dict(self.app_info_localizations)
 
-    def create_app_info_localization(self, app_info_id, locale):
+    def create_app_info_localization(self, app_info_id, locale, attributes=None):
         loc_id = f"info-{locale}"
         self.app_info_localizations[locale] = loc_id
-        self.app_info_attributes[loc_id] = {}
+        # Apple requires the name at creation time, so the attributes
+        # ride along with the POST rather than a follow-up PATCH.
+        self.app_info_attributes[loc_id] = dict(attributes or {})
         return loc_id
 
     def get_app_info_localization(self, localization_id):
@@ -202,7 +204,27 @@ def test_the_app_name_is_held_back_unless_asked_for():
 
     client2 = FakeClient({"en-US": {}})
     MetadataPusher(client2, MetadataOptions(include_app_info=True)).push("v1", doc, app_id="app-1")
-    assert client2.app_info_patches == [("info-en-US", {"name": "Renamed"})]
+    # Written either way — this language had no app-info localization
+    # yet, so the name rides along with the POST that creates it.
+    assert client2.app_info_attributes["info-en-US"]["name"] == "Renamed"
+
+
+def test_a_new_language_carries_its_name_into_the_create_call():
+    """App Store Connect 409s an appInfoLocalization POSTed without a
+    name, so a language that does not exist yet must send it up front
+    instead of creating an empty record and patching it afterwards."""
+    client = FakeClient({"en-US": {}})
+    client.app_info_localizations = {}  # nothing exists for this locale yet
+    doc = make_doc({"en-US": {"name": "Altitude Zero", "subtitle": "Neon", "description": "d"}})
+
+    MetadataPusher(client, MetadataOptions(include_app_info=True)).push("v1", doc, app_id="app-1")
+
+    assert client.app_info_attributes["info-en-US"] == {
+        "name": "Altitude Zero",
+        "subtitle": "Neon",
+    }
+    # Nothing left over to PATCH once the create carried both fields.
+    assert client.app_info_patches == []
 
 
 def test_only_languages_narrows_the_push():

@@ -192,12 +192,18 @@ class MetadataPusher:
                 for key, value in wanted.items():
                     report.changes.append(FieldChange(entry.locale, key, "", value))
                 return
-            localization_id = self._client.create_app_info_localization(app_info_id, entry.locale)
+            # A new language needs its name in the creation call itself —
+            # Apple 409s an appInfoLocalization POSTed without one. Send
+            # every field at once; there is nothing left to PATCH after.
+            localization_id = self._client.create_app_info_localization(
+                app_info_id, entry.locale, wanted
+            )
             existing[entry.locale] = localization_id
-            current: dict[str, str] = {}
-        else:
-            current = self._client.get_app_info_localization(localization_id)
+            for key, value in wanted.items():
+                report.changes.append(FieldChange(entry.locale, key, "", value))
+            return
 
+        current = self._client.get_app_info_localization(localization_id)
         changed = _diff(entry.locale, wanted, current, report)
         if changed and not self._options.dry_run:
             self._client.update_app_info_localization(localization_id, changed)
