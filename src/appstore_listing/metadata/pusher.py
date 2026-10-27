@@ -187,6 +187,11 @@ class MetadataPusher:
             return
 
         localization_id = existing.get(entry.locale)
+        if localization_id is None and not self._options.dry_run:
+            # Adding a language to the version makes Apple add it to the app info
+            # too, so look again: creating it a second time would 409.
+            existing.update(self._client.list_app_info_localizations(app_info_id))
+            localization_id = existing.get(entry.locale)
         if localization_id is None:
             if self._options.dry_run:
                 for key, value in wanted.items():

@@ -227,6 +227,32 @@ def test_a_new_language_carries_its_name_into_the_create_call():
     assert client.app_info_patches == []
 
 
+def test_a_language_apple_added_to_the_app_info_is_updated_not_created_again():
+    """Creating a version localization makes App Store Connect create the
+    app-info localization for that language as well, so the push must find
+    it rather than POST a duplicate (which 409s)."""
+
+    class AutoCreatingClient(FakeClient):
+        def create_localization(self, version_id, locale):
+            loc_id = super().create_localization(version_id, locale)
+            self.app_info_localizations[locale] = f"info-{locale}"
+            self.app_info_attributes[f"info-{locale}"] = {"name": "Placeholder"}
+            return loc_id
+
+        def create_app_info_localization(self, app_info_id, locale, attributes=None):
+            raise ApiError(409, f"An appInfoLocalization for {locale} already exists.")
+
+    client = AutoCreatingClient({"en-US": {}})
+    doc = make_doc({"fr-FR": {"name": "Altitude Zero", "subtitle": "Néon", "description": "d"}})
+
+    pusher = MetadataPusher(client, MetadataOptions(include_app_info=True))
+    report = pusher.push("v1", doc, app_id="app-1")
+
+    assert report.errors == []
+    expected = {"name": "Altitude Zero", "subtitle": "Néon"}
+    assert client.app_info_patches == [("info-fr-FR", expected)]
+
+
 def test_only_languages_narrows_the_push():
     client = FakeClient({"en-US": {}, "de-DE": {}})
     doc = make_doc({"en-US": {"description": "a"}, "de-DE": {"description": "b"}})
