@@ -463,6 +463,7 @@ def devices_command() -> None:
     table.add_column("Device")
     table.add_column("Example folder name")
     examples = {
+        "APP_IPHONE_DUO": "iPhone-Duo-Inner",
         "APP_IPHONE_67": "iPhone-6.9",
         "APP_IPHONE_65": "iPhone-6.5",
         "APP_IPHONE_61": "iPhone-6.1",

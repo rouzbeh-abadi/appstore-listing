@@ -8,6 +8,11 @@ Note on sizes: Apple did **not** add new enum values for the 6.9-inch iPhone or
 the 13-inch iPad -- those screenshots go into the existing 6.7-inch and 12.9-inch
 (3rd gen) display types, whose accepted resolutions were widened instead.  The
 alias table below encodes that, and any mapping can be overridden per project.
+
+iPhone Duo is the exception: it has its own ``APP_IPHONE_DUO`` set, which takes
+both of its displays (outer 1398x2034, inner 2853x2007, either way up).  Apple's
+published API reference doesn't list the value yet, but App Store Connect
+accepts it.
 """
 
 from __future__ import annotations
@@ -19,6 +24,7 @@ from ..errors import UnknownDeviceError
 
 #: Every ``screenshotDisplayType`` value App Store Connect accepts.
 DISPLAY_TYPES: tuple[str, ...] = (
+    "APP_IPHONE_DUO",
     "APP_IPHONE_67",
     "APP_IPHONE_65",
     "APP_IPHONE_61",
@@ -56,6 +62,7 @@ DISPLAY_TYPES: tuple[str, ...] = (
 
 #: Human labels, used by the UI and by ``--list-devices``.
 DISPLAY_TYPE_LABELS: dict[str, str] = {
+    "APP_IPHONE_DUO": "iPhone Duo",
     "APP_IPHONE_67": 'iPhone 6.9" / 6.7"',
     "APP_IPHONE_65": 'iPhone 6.5"',
     "APP_IPHONE_61": 'iPhone 6.1"',
@@ -171,6 +178,9 @@ _register_resolutions(
         (750, 1334): "APP_IPHONE_47",
         (640, 1136): "APP_IPHONE_40",
         (640, 960): "APP_IPHONE_35",
+        # iPhone Duo -- one set for both displays
+        (1398, 2034): "APP_IPHONE_DUO",
+        (2853, 2007): "APP_IPHONE_DUO",
         # iPad
         (2064, 2752): "APP_IPAD_PRO_3GEN_129",
         (2048, 2732): "APP_IPAD_PRO_3GEN_129",
@@ -200,6 +210,7 @@ _NAME_ALIASES: dict[str, str] = {
     "visionos": "APP_APPLE_VISION_PRO",
     "watchultra": "APP_WATCH_ULTRA",
     "ultra": "APP_WATCH_ULTRA",
+    "duo": "APP_IPHONE_DUO",
 }
 
 _ENUM_BY_KEY = {re.sub(r"[^a-z0-9]", "", name.lower()): name for name in DISPLAY_TYPES}
@@ -294,6 +305,10 @@ def _parse_family_and_size(name: str) -> str | None:
 
     if family is None:
         return None
+
+    if family == "iphone" and "duo" in joined:
+        # "iPhone-Duo-Inner" and "iPhone-Duo-Outer" both go into the one Duo set.
+        return "APP_IPHONE_DUO"
 
     if family == "watch":
         if "ultra" in joined:

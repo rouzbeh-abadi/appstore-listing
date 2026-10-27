@@ -33,6 +33,12 @@ from appstore_listing.naming.display_types import (
         ("Vision-Pro", "APP_APPLE_VISION_PRO"),
         ("Apple Watch Ultra", "APP_WATCH_ULTRA"),
         ("Watch Series 7", "APP_WATCH_SERIES_7"),
+        # iPhone Duo: both displays share one set
+        ("iPhone-Duo-Inner", "APP_IPHONE_DUO"),
+        ("iPhone-Duo-Outer", "APP_IPHONE_DUO"),
+        ("iPhoneDuo", "APP_IPHONE_DUO"),
+        ("Duo", "APP_IPHONE_DUO"),
+        ("APP_IPHONE_DUO", "APP_IPHONE_DUO"),
     ],
 )
 def test_resolve_display_type(folder, expected):
@@ -54,6 +60,9 @@ def test_resolution_fallback():
     assert resolve_display_type("Set 1", resolution=(1320, 2868)) == "APP_IPHONE_67"
     # landscape images resolve to the same display type
     assert display_type_from_resolution((2752, 2064)) == "APP_IPAD_PRO_3GEN_129"
+    # iPhone Duo's outer and inner displays, either way up
+    for size in [(1398, 2034), (2034, 1398), (2853, 2007), (2007, 2853)]:
+        assert display_type_from_resolution(size) == "APP_IPHONE_DUO"
 
 
 def test_unknown_device_raises():

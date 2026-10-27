@@ -65,10 +65,13 @@ appstore-listing upload -d ./iPhone-6.9 -b com.example.myapp
 ```
 
 Separators, case and orientation are ignored, so `iPhone-6.9`, `iphone_69` and
-`iPhone-6.9-Portrait` all mean the same thing. `appstore-listing devices` prints
-every name it knows. Language folders are normalised to App Store locale codes,
-which are irregular: `it-IT` becomes `it` and `zh-CN` becomes `zh-Hans`, while
-`de-DE` and `pt-BR` keep their region.
+`iPhone-6.9-Portrait` all mean the same thing. iPhone Duo has one set for both
+of its displays, so `iPhone-Duo-Inner` (2853×2007) and `iPhone-Duo-Outer`
+(1398×2034) both go up as `APP_IPHONE_DUO`: upload one of them, or merge them
+into a single folder. `appstore-listing devices` prints every name it knows.
+Language folders are normalised to App Store locale codes, which are irregular:
+`it-IT` becomes `it` and `zh-CN` becomes `zh-Hans`, while `de-DE` and `pt-BR`
+keep their region.
 
 For a folder name it cannot guess, drop a `listing.json` beside your folders (`snapshots.json` still works):
 
